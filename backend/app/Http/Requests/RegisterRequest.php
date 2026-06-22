@@ -12,8 +12,17 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'unique:users,email'],
+            'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.unique'             => 'This email address is already registered. Please log in or use a different email.',
+            'password.confirmed'       => 'Password confirmation does not match.',
+            'password.min'             => 'Password must be at least 8 characters.',
         ];
     }
 }
