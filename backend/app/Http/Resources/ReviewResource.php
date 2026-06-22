@@ -9,8 +9,7 @@ class ReviewResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $pr   = $this->whenLoaded('pullRequest');
-        $repo = $pr ? $pr->whenLoaded('repository') : null;
+        $pr = $this->whenLoaded('pullRequest');
 
         return [
             'id'                 => $this->id,
@@ -23,19 +22,28 @@ class ReviewResource extends JsonResource
             'posted_to_github'   => $this->posted_to_github,
             'github_review_id'   => $this->github_review_id,
             'created_at'         => $this->created_at?->toIso8601String(),
-            'pull_request'       => $this->whenLoaded('pullRequest', fn() => [
-                'pr_number' => $pr->pr_number,
-                'title'     => $pr->title,
-                'author'    => $pr->author,
-                'state'     => $pr->state,
-                'head_sha'  => $pr->head_sha,
-                'repository' => $this->whenLoaded('pullRequest', fn() => $pr->relationLoaded('repository') ? [
-                    'url'   => $pr->repository->url,
-                    'owner' => $pr->repository->owner,
-                    'name'  => $pr->repository->name,
-                ] : null),
-            ]),
-            'findings'           => ReviewFindingResource::collection($this->whenLoaded('findings')),
+
+            'pull_request' => $this->whenLoaded('pullRequest', function () use ($pr) {
+                return [
+                    'pr_number' => $pr->pr_number,
+                    'title'     => $pr->title,
+                    'author'    => $pr->author,
+                    'state'     => $pr->state,
+                    'head_sha'  => $pr->head_sha,
+
+                    'repository' => $pr->relationLoaded('repository')
+                        ? [
+                            'url'   => $pr->repository->url,
+                            'owner' => $pr->repository->owner,
+                            'name'  => $pr->repository->name,
+                        ]
+                        : null,
+                ];
+            }),
+
+            'findings' => ReviewFindingResource::collection(
+                $this->whenLoaded('findings')
+            ),
         ];
     }
 }
