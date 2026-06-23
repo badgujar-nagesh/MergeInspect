@@ -1,15 +1,20 @@
 import axios from 'axios'
 
 /**
- * In development:  requests go to /api  → Vite proxy → http://localhost:8000/api
- * In production:   requests go to /api  → served by Nginx on the same domain
+ * VITE_API_BASE_URL is baked into the JS bundle at build time by Vite.
+ * - .env.development  → http://localhost:8000   (used by npm run dev)
+ * - .env.production   → https://yourdomain.com  (used by npm run build)
  *
- * VITE_API_BASE_URL is only used by the Vite dev-server proxy (vite.config.js).
- * The axios baseURL stays as '/api' in all environments so the built React app
- * always calls relative URLs — Nginx routes them to Laravel on the server.
+ * The baseURL here is used directly by axios in the browser.
+ * The Vite proxy in vite.config.js is NOT used in production builds —
+ * only during local dev as a fallback if VITE_API_BASE_URL is not set.
  */
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
+  ? `${import.meta.env.VITE_API_BASE_URL}/api`
+  : '/api'
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept':       'application/json',
